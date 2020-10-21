@@ -9,4 +9,6 @@ const int SERVPORT = 21;
 const int MAXLINE = 4096;
 const int BUFFSIZE = 8192;
 
+void checksum(char[] packet, char* hash);
+
 #endif //NETWORKSPROJECT1_UNP_H

@@ -3,6 +3,7 @@ include_directories(.)
 
 project(server)
 project(client)
+project(unp)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -10,3 +11,4 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_executable(server Server/server.cpp)
 add_executable(client Client/client.cpp Client/gremlin.cpp)
+add_executable(unp unp.cpp)
