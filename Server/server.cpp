@@ -13,7 +13,7 @@
 
 using namespace std;
 
-bool isThereError(uint8_t expectedHash, uint8_t *data);
+bool isThereError(uint16_t expectedHash, uint8_t *data);
 
 int main () {
     int n;

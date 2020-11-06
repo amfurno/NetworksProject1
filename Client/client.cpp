@@ -9,7 +9,10 @@
 #include "gremlin.h"
 #include <cstdint>
 #include <unistd.h>
-#include <socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include "../unp.h"
 
 using namespace std;
 
