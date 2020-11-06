@@ -1,6 +1,6 @@
-//
-// Created by amfur on 10/21/2020.
-//
+//  Anthony Furno
+//  William Canup
+//  Basil Wells
 
 #ifndef NETWORKSPROJECT1_GREMLIN_H
 #define NETWORKSPROJECT1_GREMLIN_H
