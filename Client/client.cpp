@@ -15,7 +15,11 @@ void sendPacket(); //TODO write this
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data);
 
 int main (int argc, char *argv[]) {
-//arguments expected [filename, errorChance]
+
+	float damage;
+	float drop;
+
+	//arguments expected [filename, damageChance, dropChance]
     ifstream inputFile;
     inputFile.open (/*innput file*/, ios::in);
 
@@ -36,7 +40,7 @@ int main (int argc, char *argv[]) {
         packetData.push_back(ch);
         if (packetData.size() == 124) {
             makePacket(packet, packetNumber, packetData);
-            if (gremlin()) {//TODO add proper function call
+            if (gremlin(packet, damage, drop)) {
                 sendPacket();
             }
             packetNumber++;
@@ -46,7 +50,7 @@ int main (int argc, char *argv[]) {
     if (!packetData.empty()) {
         packetData.resize(124, NULL);
         makePacket(packet, packetNumber, packetData);
-        if (gremlin()) {//TODO add proper function call
+        if (gremlin(packet, damage, drop)) {
             sendPacket();
         }
     }
