@@ -18,9 +18,9 @@
 using namespace std;
 
 void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data);
-void put(ifstream &inputFile, float damage, float drop, char *fileName);
+int put(ifstream &inputFile, float damage, float drop, char *fileName);
 ifstream openFile(char* fileName);
-void getConfirmation();
+void getConfirmation(int sd);
 
 int main (int argc, char *argv[]) {
 
@@ -40,27 +40,19 @@ int main (int argc, char *argv[]) {
     ifstream inputFile = openFile(fileName);
 
 
-    put(inputFile, damage, drop, fileName);
+    int sd = put(inputFile, damage, drop, fileName);
 
-    getConfirmation();
+    cout << "waiting on confirmation" << endl;
+    getConfirmation(sd);
+	close(sd);
 
     return 0;
 }
 
-void getConfirmation() {
+void getConfirmation(int sd) {
 
     int n;
-    struct sockaddr_in server;
     char startRequest[128];
-
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(SERVPORT);
-
-    int sd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (bind(sd, (struct sockaddr *) &server, sizeof(server)) < 0)
-        cerr << "error binding socket" << endl;
 
     listen(sd, 5);
 
@@ -89,7 +81,7 @@ ifstream openFile(char* fileName) {
     return inputFile;
 }
 
-void put(ifstream &inputFile, float damage, float drop, char *fileName) {
+int put(ifstream &inputFile, float damage, float drop, char *fileName) {
     uint8_t ch;
     vector<uint8_t> packetData;
     uint8_t packet[128] = {0};
@@ -102,6 +94,7 @@ void put(ifstream &inputFile, float damage, float drop, char *fileName) {
     sd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sd < 0)
 		cerr << "ERROR opening socket" << endl;
+
     server.sin_family = AF_INET;
     server.sin_port = htons(SERVPORT);
 
@@ -111,6 +104,10 @@ void put(ifstream &inputFile, float damage, float drop, char *fileName) {
     	exit(5);
     }
     bcopy(hp->h_addr, &(server.sin_addr), hp->h_length);
+
+
+	if (bind(sd, (struct sockaddr *) &server, sizeof(server)) < 0)
+		cerr << "error binding socket" << endl;
 
     string request = ("PUT" + (string)fileName);
     cout << "sending PUT packet " << endl;
@@ -160,7 +157,7 @@ void put(ifstream &inputFile, float damage, float drop, char *fileName) {
     cout << "sending end packet" << endl;
     sendto(sd, "/0", 1, 0, (struct sockaddr *) &server, sizeof(server));
 
-    close(sd);
+    return sd;
 }
 
 void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data) {

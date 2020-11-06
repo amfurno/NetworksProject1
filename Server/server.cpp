@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -17,7 +18,8 @@ bool isThereError(uint16_t expectedHash, uint8_t *data);
 
 int main () {
     int n;
-    struct sockaddr_in server;
+    struct sockaddr_in server, client;
+    int slen = sizeof(client);
     char startRequest[128];
     uint8_t packet[128];
     uint16_t expectedPacketNumber = 0;
@@ -53,7 +55,7 @@ int main () {
     // receiving packet loop
     for (;;) {
 
-        n = recv(sd, packet, sizeof(packet), 0);
+        n = recvfrom(sd, packet, sizeof(packet), 0, (struct sockaddr*) &client, (socklen_t*)&slen);
 
         uint8_t firstByte = packet[0];
         uint8_t secondByte = packet[1];
@@ -94,7 +96,9 @@ int main () {
     }
 
     // sending final PUT message and closing the socket and file
-    sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &server, sizeof(server));
+    cout << "sending awk packet" << endl;
+    cout << "ip: " << inet_ntoa(client.sin_addr) << ":" << ntohs(server.sin_port);
+    sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &client, sizeof(client));
 
     close(sd);
 
@@ -102,6 +106,37 @@ int main () {
 
     return 0;
 }
+/*
+void stackoverflow() {
+	struct sockaddr_in si_me, si_other;
+	int s, i, blen, slen = sizeof(si_other);
+	char buf[BUFLEN];
+
+	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (s == -1)
+	die("socket");
+
+	memset((char *) &si_me, 0, sizeof(si_me));
+	si_me.sin_family = AF_INET;
+	si_me.sin_port = htons(1234);
+	si_me.sin_addr.s_addr = htonl(192.168.1.1);
+
+	if (bind(s, (struct sockaddr*) &si_me, sizeof(si_me))==-1)
+	die("bind");
+
+	blen = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*) &si_other, &slen);
+	if (blen == -1)
+	diep("recvfrom()");
+
+	printf("Data: %.*s \nReceived from %s:%d\n\n", blen, buf, inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
+
+	//send answer back to the client
+	if (sendto(s, buf, blen, 0, (struct sockaddr*) &si_other, slen) == -1)
+	diep("sendto()");
+
+	close(s);
+	return 0;
+}*/
 
 bool isThereError(uint16_t expectedHash, uint8_t *data) {
 
