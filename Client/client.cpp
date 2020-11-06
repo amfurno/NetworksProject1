@@ -12,6 +12,8 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
+#include <strings.h>
 
 using namespace std;
 
@@ -65,11 +67,15 @@ void put(ifstream &inputFile, float damage, float drop, char *fileName) {
 
     int sd;
     struct sockaddr_in server;
+    struct hostent *hp;
 
     sd = socket(AF_INET, SOCK_DGRAM, 0);
 
     server.sin_family = AF_INET;
     server.sin_port = htons(SERVPORT);
+
+    hp = gethostbyname("xxx.xx.x.x");
+    bcopy(hp->h_addr, &(server.sin_addr), hp->h_length);
 
     string request = ("PUT" + (string)fileName);
     sendto(sd, request.c_str(), request.size(), 0, (struct sockaddr *) &server, sizeof(server));
