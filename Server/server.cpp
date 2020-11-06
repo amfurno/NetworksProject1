@@ -76,17 +76,17 @@ int main () {
         }
 
         if (!(isThereError(hash, data))) {
-        	cout << "There is no error: " << packetNumber << endl;
+        	cout << "Packet good: " << packetNumber << endl;
 			for (int i = 4; i < 52; i++) {
 				cout << (char) packet[i];
 			}
         }
         else {
-            cout << "There is an error: " << packetNumber << endl;
+            cout << "This packet is corrupted: " << packetNumber << endl;
         }
 
         for (int i = 4; i < n; i++) {
-        	cout << (char) packet[i];
+        	//cout << (char) packet[i];
 			if (packet[i] != 0)
         		outfile << (char) packet[i];
 		}
@@ -96,8 +96,8 @@ int main () {
     }
 
     // sending final PUT message and closing the socket and file
-    cout << "sending awk packet" << endl;
-    cout << "ip: " << inet_ntoa(client.sin_addr) << ":" << ntohs(server.sin_port);
+    cout << "File transfer complete" << endl;
+
     sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &client, sizeof(client));
 
     close(sd);
@@ -106,37 +106,6 @@ int main () {
 
     return 0;
 }
-/*
-void stackoverflow() {
-	struct sockaddr_in si_me, si_other;
-	int s, i, blen, slen = sizeof(si_other);
-	char buf[BUFLEN];
-
-	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (s == -1)
-	die("socket");
-
-	memset((char *) &si_me, 0, sizeof(si_me));
-	si_me.sin_family = AF_INET;
-	si_me.sin_port = htons(1234);
-	si_me.sin_addr.s_addr = htonl(192.168.1.1);
-
-	if (bind(s, (struct sockaddr*) &si_me, sizeof(si_me))==-1)
-	die("bind");
-
-	blen = recvfrom(s, buf, sizeof(buf), 0, (struct sockaddr*) &si_other, &slen);
-	if (blen == -1)
-	diep("recvfrom()");
-
-	printf("Data: %.*s \nReceived from %s:%d\n\n", blen, buf, inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-
-	//send answer back to the client
-	if (sendto(s, buf, blen, 0, (struct sockaddr*) &si_other, slen) == -1)
-	diep("sendto()");
-
-	close(s);
-	return 0;
-}*/
 
 bool isThereError(uint16_t expectedHash, uint8_t *data) {
 

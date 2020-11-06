@@ -119,8 +119,8 @@ int put(ifstream &inputFile, float damage, float drop, char *fileName) {
             makePacket(packet, packetNumber, packetData);
             if (gremlin(packet, damage, drop)) {
                 cout << "sending packet: " << packetNumber << endl;
-				for (int i = 4; i < packetSize; i++) {
-					cout << (char) packet[i];
+				for (int i = 4; i < 52; i++) {
+					cout << (int) packet[i];
 				}
 				cout << endl;
             	sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
@@ -131,30 +131,22 @@ int put(ifstream &inputFile, float damage, float drop, char *fileName) {
         }
     }
     if (!packetData.empty()) {
-		for (int i=0; i < packetData.size(); i++) {
-			cout << (char) packetData[i];
-		}
-		cout << endl;
         //packetData.resize(124, NULL);
         while (packetData.size() < packetSize) {
         	packetData.push_back(0);
         }
-		for (int i = 0; i < packetData.size(); i++) {
-			cout << (char) packetData[i];
-		}
-		cout << endl;
 
         makePacket(packet, packetNumber, packetData);
         if (gremlin(packet, damage, drop)) {
         	cout << "sending final packet: " << packetNumber << endl;
-			for (int i = 4; i < packetSize; i++) {
+			for (int i = 4; i < 52; i++) {
 				cout << (int) packet[i];
 			}
 			cout << endl;
             sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
         }
     }
-    cout << "sending end packet" << endl;
+    cout << "sending termination packet" << endl;
     sendto(sd, "/0", 1, 0, (struct sockaddr *) &server, sizeof(server));
 
     return sd;
