@@ -45,7 +45,7 @@ int main (int argc, char *argv[]) {
     }
     if (!packetData.empty()) {
         packetData.resize(124, NULL);
-        makePacket();
+        makePacket(packet, packetNumber, packetData);
         if (gremlin()) {//TODO add proper function call
             sendPacket();
         }
@@ -68,7 +68,7 @@ void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
     packet[0] = packNum1;
     packet[1] = packNum2;
 
-    uint16_t checksumValue = checksum(packet);
+    uint16_t checksumValue = checksum(packet, 128);
     uint8_t checkSum1 = (checksumValue >> (8*0)) & 0xff;
     uint8_t checkSum2 = (checksumValue >> (8*1)) & 0xff;
 }
