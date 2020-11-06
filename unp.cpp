@@ -13,26 +13,25 @@
 //using namespace std;
 
 
-uint16_t checksum(uint8_t *packet) {
+uint16_t checksum(const uint8_t *packet, size_t size) {
 	uint16_t sum = 0;
 	uint16_t value;
-	uint8_t partial;
+
 	int repeat = 1;
 	size_t index = 0;
 	for (int i = 0; i < repeat; i++) {
-		while (index < packetSize) {
-			partial = packet[index];
-			value = partial << 8;
-			//cout << "value: " << value << endl;
+		while (index < size) {
+
+			value = packet[index] << (uint8_t)8;
 			index++;
-			if (index < packetSize) {
+			if (index < size) {
 				value = value | packet[index];
 			} else {
 				value = value | (uint8_t)0;
 			}
 			//cout << "value: " << value << endl;
 
-			sum = sum ^ value;
+			sum = sum + value;
 
 			//cout << "sum: " << sum << endl;
 			index++;

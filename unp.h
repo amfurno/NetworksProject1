@@ -10,10 +10,10 @@ const int SERVPORT = 21;
 const int MAXLINE = 4096;
 const int BUFFSIZE = 8192;
 
-const int packetSize = 10;
+const int packetSize = 128;
 
 
 
-uint16_t checksum(uint8_t *packet);
+uint16_t checksum(const uint8_t *packet, size_t size);
 
 #endif //NETWORKSPROJECT1_UNP_H
