@@ -16,9 +16,9 @@ bool isThereError(uint8_t expectedHash, uint8_t *data);
 
 int main () {
     int n;
-    uint8_t expectedPacketNumber = 0;
+    uint16_t expectedPacketNumber = 0;
     struct sockaddr_in server;
-    uint8_t packet[128];
+    uint8_t *packet[128];
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -32,8 +32,22 @@ int main () {
 
         n = recv(sd, packet, sizeof(packet), 0);
 
-        int8_t* hash = &packet[2];
-        int8_t* data = &packet[4];
+        uint8_t firstByte = *packet[0];
+        uint8_t secondByte = *packet[1];
+        uint8_t thirdByte = *packet[2];
+        uint8_t fourthByte = *packet[3];
+
+        uint16_t packetNumber = ((uint16_t)secondByte << 8) | firstByte;
+        uint16_t hash = ((uint16_t)fourthByte << 8) | thirdByte;
+        uint8_t *data = packet[4];
+
+        if (n == 1) {
+            break;
+        }
+
+        if (packetNumber != expectedPacketNumber) {
+            cout << "There is a packet missing." << endl;
+        }
 
         if (!(isThereError(hash, data))) {
             cout << "There is no error." << endl;
@@ -42,24 +56,20 @@ int main () {
             cout << "There is an error." << endl;
         }
 
-        if (packet[0] == '\0') {
-            break;
-        }
-
-        if (packet[1] != expectedPacketNumber) {
-            cout << "There is a packet missing." << endl;
-        }
-
         expectedPacketNumber++;
 
     }
+
+    sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &server, sizeof(server));
+
     close(sd);
+
     return 0;
 }
 
-bool isThereError(uint8_t expectedHash, uint8_t *data) {
+bool isThereError(uint16_t expectedHash, uint8_t *data) {
 
-    uint8_t hash = checksum(data);
+    uint16_t hash = checksum(data, 124);
 
     if (hash == expectedHash) {
         return false;

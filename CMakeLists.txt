@@ -9,5 +9,5 @@ set(CMAKE_CXX_STANDARD 11)
 
 
 
-add_executable(server Server/server.cpp, unp.cpp)
+add_executable(server Server/server.cpp unp.cpp)
 add_executable(client Client/client.cpp Client/gremlin.cpp unp.cpp)
