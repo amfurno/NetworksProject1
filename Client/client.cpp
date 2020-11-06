@@ -20,6 +20,7 @@ using namespace std;
 void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data);
 void put(ifstream &inputFile, float damage, float drop, char *fileName);
 ifstream openFile(char* fileName);
+void getConfirmation();
 
 int main (int argc, char *argv[]) {
 
@@ -41,8 +42,37 @@ int main (int argc, char *argv[]) {
 
     put(inputFile, damage, drop, fileName);
 
+    getConfirmation();
 
     return 0;
+}
+
+void getConfirmation() {
+
+    int n;
+    struct sockaddr_in server;
+    char startRequest[128];
+
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(SERVPORT);
+
+    int sd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (bind(sd, (struct sockaddr *) &server, sizeof(server)) < 0)
+        cerr << "error binding socket" << endl;
+
+    listen(sd, 5);
+
+    for (;;) {
+
+        n = recv(sd, startRequest, sizeof(startRequest), 0);
+
+        if (startRequest[0] != '\0') {
+            cout << startRequest << endl;
+            break;
+        }
+    }
 }
 
 ifstream openFile(char* fileName) {
