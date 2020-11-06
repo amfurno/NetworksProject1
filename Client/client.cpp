@@ -12,13 +12,11 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "../unp.h"
 
 using namespace std;
 
-void sendPacket(); //TODO write this
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data);
-void put(ifstream& inputFile, float damage, float drop);
+void put(ifstream &inputFile, float damage, float drop, char *fileName);
 ifstream openFile(char* fileName);
 
 int main (int argc, char *argv[]) {
@@ -39,7 +37,7 @@ int main (int argc, char *argv[]) {
     ifstream inputFile = openFile(fileName);
 
 
-    put(inputFile, damage, drop);
+    put(inputFile, damage, drop, fileName);
 
 
     return 0;
@@ -59,18 +57,30 @@ ifstream openFile(char* fileName) {
     return inputFile;
 }
 
-void put(ifstream& inputFile, float damage, float drop){
+void put(ifstream &inputFile, float damage, float drop, char *fileName) {
     uint8_t ch;
     vector<uint8_t> packetData;
     uint8_t packet[128] = {0};
     uint16_t packetNumber = 0;
+
+    int sd;
+    struct sockaddr_in server;
+
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons(SERVPORT);
+
+    string request = ("PUT" + (string)fileName);
+    sendto(sd, request.c_str(), request.size(), 0, (struct sockaddr *) &server, sizeof(server));
 
     while (inputFile >> noskipws >> ch) {
         packetData.push_back(ch);
         if (packetData.size() == 124) {
             makePacket(packet, packetNumber, packetData);
             if (gremlin(packet, damage, drop)) {
-                sendPacket();
+                sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
+                sleep(2);
             }
             packetNumber++;
             packetData.clear();
@@ -80,11 +90,13 @@ void put(ifstream& inputFile, float damage, float drop){
         packetData.resize(124, NULL);
         makePacket(packet, packetNumber, packetData);
         if (gremlin(packet, damage, drop)) {
-            sendPacket();
+            sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
+            sleep(2);
         }
     }
-    //TODO send 1 Byte packet
+    sendto(sd, NULL, 1, 0, (struct sockaddr *) &server, sizeof(server));
 
+    close(sd);
 }
 
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
@@ -101,20 +113,4 @@ void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
     uint16_t checksumValue = checksum(packet, 128);
     uint8_t checkSum1 = (checksumValue >> (8*0)) & 0xff;
     uint8_t checkSum2 = (checksumValue >> (8*1)) & 0xff;
-}
-
-void sendPacket(uint8_t packet[]) {
-    int sd;
-    struct sockaddr_in server;
-
-    sd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons(SERVPORT);
-
-    for (;;) {
-        sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
-        sleep(2);
-    }
-    close(sd);
 }
