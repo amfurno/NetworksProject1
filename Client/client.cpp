@@ -16,25 +16,25 @@ using namespace std;
 void sendPacket(); //TODO write this
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data);
 void put(ifstream& inputFile, float damage, float drop);
-ifstream openFile(string fileName);
+ifstream openFile(char* fileName);
 
 int main (int argc, char *argv[]) {
 
 	float damage;
 	float drop;
+    char* fileName;
 
 	//arguments expected [filename, damageChance, dropChance]
 	if (argc != 3) {
 	    exit(3);
 	}
 
-	damage = stof(argv[1]);
-	drop = stof(argv[1]);
+	fileName = argv[1];
+	damage = stof(argv[2]);
+	drop = stof(argv[3]);
 
-	string input;
-    cout << "enter file name";
-    cin >> input;
-    ifstream inputFile = openFile(input);
+    ifstream inputFile = openFile(fileName);
+
 
     put(inputFile, damage, drop);
 
@@ -42,7 +42,7 @@ int main (int argc, char *argv[]) {
     return 0;
 }
 
-ifstream openFile(string fileName) {
+ifstream openFile(char* fileName) {
     ifstream inputFile;
     inputFile.open (fileName, ios::in);
 
