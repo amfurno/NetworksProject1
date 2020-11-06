@@ -8,11 +8,15 @@
 #include "../unp.h"
 #include "gremlin.h"
 #include <cstdint>
+#include <unistd.h>
+#include <socket.h>
 
 using namespace std;
 
 void sendPacket(); //TODO write this
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data);
+void put(ifstream& inputFile, float damage, float drop);
+ifstream openFile(string fileName);
 
 int main (int argc, char *argv[]) {
 
@@ -20,8 +24,27 @@ int main (int argc, char *argv[]) {
 	float drop;
 
 	//arguments expected [filename, damageChance, dropChance]
+	if (argc != 3) {
+	    exit(3);
+	}
+
+	damage = stof(argv[1]);
+	drop = stof(argv[1]);
+
+	string input;
+    cout << "enter file name";
+    cin >> input;
+    ifstream inputFile = openFile(input);
+
+    put(inputFile, damage, drop);
+
+
+    return 0;
+}
+
+ifstream openFile(string fileName) {
     ifstream inputFile;
-    inputFile.open (/*innput file*/, ios::in);
+    inputFile.open (fileName, ios::in);
 
     if (!inputFile.is_open()) {
         cout << "Unable to open file, exiting";
@@ -30,7 +53,10 @@ int main (int argc, char *argv[]) {
     else {
         cout << "file opened successfully.\n";
     }
+    return inputFile;
+}
 
+void put(ifstream& inputFile, float damage, float drop){
     uint8_t ch;
     vector<uint8_t> packetData;
     uint8_t packet[128] = {0};
@@ -56,9 +82,6 @@ int main (int argc, char *argv[]) {
     }
     //TODO send 1 Byte packet
 
-
-
-    return 0;
 }
 
 void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
@@ -75,4 +98,20 @@ void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
     uint16_t checksumValue = checksum(packet, 128);
     uint8_t checkSum1 = (checksumValue >> (8*0)) & 0xff;
     uint8_t checkSum2 = (checksumValue >> (8*1)) & 0xff;
+}
+
+void sendPacket(uint8_t packet[]) {
+    int sd;
+    struct sockaddr_in server;
+
+    sd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons(SERVPORT);
+
+    for (;;) {
+        sendto(sd, packet, 128, 0, (struct sockaddr *) &server, sizeof(server));
+        sleep(2);
+    }
+    close(sd);
 }

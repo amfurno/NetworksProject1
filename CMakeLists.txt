@@ -4,6 +4,7 @@ include_directories(.)
 project(server)
 project(client)
 project(unp)
+project(gremlin)
 
 set(CMAKE_CXX_STANDARD 11)
 
