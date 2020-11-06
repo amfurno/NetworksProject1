@@ -4,7 +4,7 @@
 
 #include "gremlin.h"
 #include <random>
-#include <functional>
+//#include <functional>
 
 
 bool gremlin(uint8_t *packet, float damage, float drop) {
