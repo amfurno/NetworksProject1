@@ -18,7 +18,7 @@ int main () {
     int n;
     uint16_t expectedPacketNumber = 0;
     struct sockaddr_in server;
-    uint8_t *packet[128];
+    uint8_t packet[128];
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -32,14 +32,14 @@ int main () {
 
         n = recv(sd, packet, sizeof(packet), 0);
 
-        uint8_t firstByte = *packet[0];
-        uint8_t secondByte = *packet[1];
-        uint8_t thirdByte = *packet[2];
-        uint8_t fourthByte = *packet[3];
+        uint8_t firstByte = packet[0];
+        uint8_t secondByte = packet[1];
+        uint8_t thirdByte = packet[2];
+        uint8_t fourthByte = packet[3];
 
-        uint16_t packetNumber = ((uint16_t)secondByte << 8) | firstByte;
-        uint16_t hash = ((uint16_t)fourthByte << 8) | thirdByte;
-        uint8_t *data = packet[4];
+        uint16_t packetNumber = (uint16_t) (secondByte << (uint8_t) 8) | firstByte;
+        uint16_t hash = (uint16_t) (fourthByte << (uint8_t) 8) | thirdByte;
+        uint8_t *data = &packet[4];
 
         if (n == 1) {
             break;
