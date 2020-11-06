@@ -5,6 +5,7 @@
 #ifndef NETWORKSPROJECT1_UNP_H
 #define NETWORKSPROJECT1_UNP_H
 #include <cstdint>
+#include <cstddef>
 
 const int SERVPORT = 21;
 const int MAXLINE = 4096;
