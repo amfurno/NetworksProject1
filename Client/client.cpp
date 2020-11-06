@@ -12,7 +12,7 @@
 using namespace std;
 
 void sendPacket(); //TODO write this
-void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data);
+void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data);
 
 int main (int argc, char *argv[]) {
 
@@ -61,18 +61,18 @@ int main (int argc, char *argv[]) {
     return 0;
 }
 
-void makePacket(uint8_t packet[], uint16_t packetNumber, vector<uint8_t> data) {
+void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data) {
     int packetLocation = 4;
-    for (int i = 0; i < data.size(); i++) {
-        packet[packetLocation] = data[i];
+    for (unsigned char i : data) {
+        packet[packetLocation] = i;
     }
 
-    uint8_t packNum1 = (packetNumber >> (8*0)) & 0xff;
-    uint8_t packNum2 = (packetNumber >> (8*1)) & 0xff;
+    uint8_t packNum1 = (uint16_t) (packetNumber >> (uint8_t) (8*0)) & (uint8_t) 0xff;
+    uint8_t packNum2 = (uint16_t) (packetNumber >> (uint8_t) (8*1)) & (uint8_t) 0xff;
     packet[0] = packNum1;
     packet[1] = packNum2;
 
     uint16_t checksumValue = checksum(packet, 128);
-    uint8_t checkSum1 = (checksumValue >> (8*0)) & 0xff;
-    uint8_t checkSum2 = (checksumValue >> (8*1)) & 0xff;
+    uint8_t checkSum1 = (uint16_t) (checksumValue >> (uint8_t) (8*0)) & (uint8_t) 0xff;
+    uint8_t checkSum2 = (uint16_t) (checksumValue >> (uint8_t) (8*1)) & (uint8_t) 0xff;
 }
