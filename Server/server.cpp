@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unistd.h>
 #include "../unp.h"
+#include <fstream>
 
 using namespace std;
 
@@ -16,9 +17,13 @@ bool isThereError(uint8_t expectedHash, uint8_t *data);
 
 int main () {
     int n;
-    uint16_t expectedPacketNumber = 0;
     struct sockaddr_in server;
-    uint8_t packet[128];
+    char startRequest[128];
+    uint8_t *packet[128];
+    uint16_t expectedPacketNumber = 0;
+
+    ofstream outfile;
+    outfile.open("output.txt", ios::binary | ios::out);
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -28,18 +33,29 @@ int main () {
 
     bind(sd, (struct sockaddr *) &server, sizeof(server));
 
+    // waiting for start request "PUT filename"
+    for (;;) {
+
+        n = recv(sd, startRequest, sizeof(startRequest), 0);
+
+        if (startRequest[0] != '\0') {
+            break;
+        }
+    }
+
+    // receiving packet loop
     for (;;) {
 
         n = recv(sd, packet, sizeof(packet), 0);
 
-        uint8_t firstByte = packet[0];
-        uint8_t secondByte = packet[1];
-        uint8_t thirdByte = packet[2];
-        uint8_t fourthByte = packet[3];
+        uint8_t firstByte = *packet[0];
+        uint8_t secondByte = *packet[1];
+        uint8_t thirdByte = *packet[2];
+        uint8_t fourthByte = *packet[3];
 
-        uint16_t packetNumber = (uint16_t) (secondByte << (uint8_t) 8) | firstByte;
-        uint16_t hash = (uint16_t) (fourthByte << (uint8_t) 8) | thirdByte;
-        uint8_t *data = &packet[4];
+        uint16_t packetNumber = (uint16_t)(secondByte << (uint8_t) 8) | firstByte;
+        uint16_t hash = (uint16_t)(fourthByte << (uint8_t) 8) | thirdByte;
+        uint8_t *data = packet[4];
 
         if (n == 1) {
             break;
@@ -56,13 +72,17 @@ int main () {
             cout << "There is an error." << endl;
         }
 
-        expectedPacketNumber++;
+        outfile.write((char*)data, sizeof(data));
 
+        expectedPacketNumber++;
     }
 
+    // sending final PUT message and closing the socket and file
     sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &server, sizeof(server));
 
     close(sd);
+
+    outfile.close();
 
     return 0;
 }
