@@ -41,7 +41,7 @@ int main () {
         uint16_t hash = ((uint16_t)fourthByte << 8) | thirdByte;
         uint8_t *data = packet[4];
 
-        if (packet[0] == NULL) {
+        if (n == 1) {
             break;
         }
 
@@ -59,7 +59,11 @@ int main () {
         expectedPacketNumber++;
 
     }
+
+    sendto(sd, "PUT successfully completed", 26, 0, (struct sockaddr *) &server, sizeof(server));
+
     close(sd);
+
     return 0;
 }
 
