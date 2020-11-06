@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cstddef>
 
-const int SERVPORT = 21;
+const int SERVPORT = 12345;
 const int MAXLINE = 4096;
 const int BUFFSIZE = 8192;
 

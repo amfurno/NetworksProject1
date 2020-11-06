@@ -14,17 +14,17 @@ bool gremlin(uint8_t *packet, float damage, float drop) {
 	int corruptBytes;
 
 	float result = dist(g);
-	if (result > drop) {
+	if (result < drop) {
 		return false;
 	}
 
 	result = dist(g);
-	if (result > damage) { //damage packet
+	if (result < damage) { //damage packet
 
 		result = dist(g);
-		if (result > .1)
+		if (result < .1)
 			corruptBytes = 3;
-		else if (result > .2)
+		else if (result < .2)
 			corruptBytes = 2;
 		else
 			corruptBytes = 1;
