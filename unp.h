@@ -11,7 +11,7 @@ const int SERVPORT = 12345;
 const int MAXLINE = 4096;
 const int BUFFSIZE = 8192;
 
-const int packetSize = 128;
+const int PACKETSIZE = 128;
 
 
 
