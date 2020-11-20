@@ -10,7 +10,7 @@
 bool gremlin(uint8_t *packet, float damage, float drop) {
 	std::random_device g;
 	std::uniform_real_distribution<float> dist(0,1);
-	return true;
+
 	int corruptBytes;
 
 	float result = dist(g);
