@@ -11,24 +11,29 @@
 #include <unistd.h>
 #include "../unp.h"
 #include <fstream>
+#include <netdb.h>
+#include <vector>
+#include <strings.h>
+#include "../ClientSourceCode/gremlin.h"
 
 using namespace std;
 
+void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data);
 ifstream openFile(char* fileName);
 
-int main () {
-    int n;
+int main (int argc, char *argv[]) {
+	int n;
     struct sockaddr_in server, client;
     int slen = sizeof(client);
     char startRequest[PACKETSIZE];
     uint8_t packet[PACKETSIZE];
-    uint16_t PacketNumber = 0;
+    uint16_t packetNumber = 0;
+	char* fileName;
 
-    ofstream outfile;
-    outfile.open("../output.txt", ios::out);
-    if (outfile.is_open() and outfile.good())
-    	cout << "file opened correctly" << endl;
 
+
+	float damage = stof(argv[1]);
+	float drop = stof(argv[2]);
 
 
     server.sin_family = AF_INET;
@@ -42,46 +47,22 @@ int main () {
 
     listen(sd, 5);
     // waiting for start request "PUT/GET filename"
+    cout << "waiting for packet" << endl;
     for (;;) {
 
-        n = recv(sd, startRequest, sizeof(startRequest), 0);
-
+        n = recvfrom(sd, startRequest, sizeof(startRequest), 0, (struct sockaddr*) &client, (socklen_t*)&slen);
         if (startRequest[0] != '\0') {
-        	cout << "received PUT" << endl;
+        	cout << "received GET" << endl;
+			fileName = &startRequest[4];
             break;
         }
-        char* fileName = &startRequest[4]
-
-
     }
 
     uint8_t ch;
     vector<uint8_t> packetData;
-    int sd;
-    struct sockaddr_in server;
-    struct hostent *hp;
 
-    sd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sd < 0)
-        cerr << "ERROR opening socket" << endl;
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons(SERVPORT);
-
-    hp = gethostbyname("192.168.1.64");
-    if (hp == NULL) {
-        cerr << "ERROR no such host" << endl;
-        exit(5);
-    }
-    bcopy(hp->h_addr, &(server.sin_addr), hp->h_length);
-
-
-    if (bind(sd, (struct sockaddr *) &server, sizeof(server)) < 0)
-        cerr << "error binding socket" << endl;
-
-    string request = ("PUT" + (string)fileName);
-    cout << "sending PUT packet " << endl;
-    sendto(sd, request.c_str(), request.size(), 0, (struct sockaddr *) &server, sizeof(server));
+	cout << fileName << endl;
+    ifstream inputFile = openFile(fileName);
 
     while (inputFile >> noskipws >> ch) {
         packetData.push_back(ch);
@@ -93,7 +74,7 @@ int main () {
                     cout << (int) packet[i];
                 }
                 cout << endl;
-                sendto(sd, packet, PACKETSIZE, 0, (struct sockaddr *) &server, sizeof(server));
+                sendto(sd, packet, PACKETSIZE, 0, (struct sockaddr *) &client, sizeof(client));
             } else
                 cout << "Dropping packet: " << packetNumber << endl;
             packetNumber++;
@@ -101,7 +82,7 @@ int main () {
         }
     }
     if (!packetData.empty()) {
-        while (packetData.size() < packetSize) {
+        while (packetData.size() < PACKETSIZE) {
             packetData.push_back(0);
         }
 
@@ -112,11 +93,11 @@ int main () {
                 cout << (int) packet[i];
             }
             cout << endl;
-            sendto(sd, packet, PACKETSIZE, 0, (struct sockaddr *) &server, sizeof(server));
+            sendto(sd, packet, PACKETSIZE, 0, (struct sockaddr *) &client, sizeof(client));
         }
     }
     cout << "sending termination packet" << endl;
-    sendto(sd, "/0", 1, 0, (struct sockaddr *) &server, sizeof(server));
+    sendto(sd, "\0", 1, 0, (struct sockaddr *) &client, sizeof(client));
 
     return 0;
 }
@@ -136,4 +117,27 @@ ifstream openFile(char* fileName) {
         cout << "file opened successfully.\n";
     }
     return inputFile;
+}
+
+void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data) {
+	int packetLocation = 4;
+	for (unsigned char i : data) {
+		packet[packetLocation] = i;
+		packetLocation++;
+	}
+
+	//while (packetLocation < packetSize) {
+
+	//}
+
+	uint8_t packNum1 = (packetNumber >> (8*0)) & 0xff;
+	uint8_t packNum2 = (packetNumber >> (8*1)) & 0xff;
+	packet[0] = packNum1;
+	packet[1] = packNum2;
+
+	uint16_t checksumValue = checksum(packet, PACKETSIZE);
+	uint8_t checkSum1 = (checksumValue >> (8*0)) & 0xff;
+	uint8_t checkSum2 = (checksumValue >> (8*1)) & 0xff;
+
+
 }

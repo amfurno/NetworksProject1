@@ -21,13 +21,12 @@ using namespace std;
 
 void makePacket(uint8_t packet[], uint16_t packetNumber, const vector<uint8_t>& data);
 int put(ifstream &inputFile, float damage, float drop, char *fileName);
+int get(char *fileName);
 ifstream openFile(char* fileName);
 void getConfirmation(int sd);
 
 int main (int argc, char *argv[]) {
 
-	float damage;
-	float drop;
     char* fileName;
 
 	//arguments expected [filename, damageChance, dropChance]
@@ -36,16 +35,12 @@ int main (int argc, char *argv[]) {
 	}
 
 	fileName = argv[1];
-	damage = stof(argv[2]);
-	drop = stof(argv[3]);
-
-    ifstream inputFile = openFile(fileName);
+	float damage = stof(argv[2]);
+	float drop = stof(argv[3]);
 
 
-    int sd = put(inputFile, damage, drop, fileName);
+    int sd = get(fileName);
 
-    cout << "waiting on confirmation" << endl;
-    getConfirmation(sd);
 	close(sd);
 
     return 0;
@@ -134,7 +129,7 @@ int put(ifstream &inputFile, float damage, float drop, char *fileName) {
     }
     if (!packetData.empty()) {
         //packetData.resize(PACKETSIZE - 4, NULL);
-        while (packetData.size() < packetSize) {
+        while (packetData.size() < PACKETSIZE) {
         	packetData.push_back(0);
         }
 
@@ -163,13 +158,31 @@ int get(char *fileName) {
     uint8_t packet[PACKETSIZE];
     uint16_t PacketNumber = 0;
     uint16_t expectedPacketNumber = 0;
+	struct hostent *hp;
 
     ofstream outfile;
     outfile.open("../output.txt", ios::out);
     if (outfile.is_open() and outfile.good())
         cout << "file opened correctly" << endl;
+	outfile << "written correctly";
+
 
     int sd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	server.sin_family = AF_INET;
+	server.sin_port = htons(SERVPORT);
+
+	hp = gethostbyname("192.168.1.64");
+	if (hp == NULL) {
+		cerr << "ERROR no such host" << endl;
+		exit(5);
+	}
+	bcopy(hp->h_addr, &(server.sin_addr), hp->h_length);
+
+	string request = ("GET:" + (string)fileName);
+	cout << "sending GET packet " << endl;
+
+	sendto(sd, request.c_str(), request.size(), 0, (struct sockaddr *) &server, sizeof(server));
 
     for (;;) {
 
@@ -191,22 +204,24 @@ int get(char *fileName) {
         if (packetNumber != expectedPacketNumber) {
             cout << "There is a packet missing: " << expectedPacketNumber << endl;
             expectedPacketNumber = packetNumber;
-        }
-
-        if (!(isThereError(hash, data))) {
+        } else if (!(isThereError(hash, data))) {
             cout << "Packet good: " << packetNumber << endl;
             for (int i = 4; i < 52; i++) {
                 cout << (char) packet[i];
             }
-        }
-        else {
+        } else {
             cout << "This packet is corrupted: " << packetNumber << endl;
+			for (int i = 4; i < PACKETSIZE; i++) {
+				cout << (char) packet[i];
+			}
         }
 
         for (int i = 4; i < n; i++) {
             //cout << (char) packet[i];
             if (packet[i] != 0)
                 outfile << (char) packet[i];
+            else
+            	break;
         }
         expectedPacketNumber++;
     }

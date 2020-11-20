@@ -10,7 +10,7 @@
 bool gremlin(uint8_t *packet, float damage, float drop) {
 	std::random_device g;
 	std::uniform_real_distribution<float> dist(0,1);
-
+	return true;
 	int corruptBytes;
 
 	float result = dist(g);
@@ -30,7 +30,7 @@ bool gremlin(uint8_t *packet, float damage, float drop) {
 			corruptBytes = 1;
 
 		while (corruptBytes > 0) {
-			size_t byte = std::uniform_real_distribution<float>(4, packetSize)(g);
+			size_t byte = std::uniform_real_distribution<float>(4, PACKETSIZE)(g);
 
 			packet[byte] = packet[byte] | (uint8_t) 0xe5; //bitwise or it with a random number I chose
 
