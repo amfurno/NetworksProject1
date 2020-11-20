@@ -40,3 +40,13 @@ uint16_t checksum(const uint8_t *packet, size_t size) {
 	}
 	return sum;
 }
+
+bool isThereError(uint16_t expectedHash, uint8_t *data) {
+
+    uint16_t hash = checksum(data, PACKETSIZE - 4);
+
+    if (hash == expectedHash) {
+        return false;
+    }
+    return true;
+}

@@ -17,4 +17,6 @@ const int PACKETSIZE = 512;
 
 uint16_t checksum(const uint8_t *packet, size_t size);
 
+bool isThereError(uint16_t expectedHash, uint8_t *data);
+
 #endif //NETWORKSPROJECT1_UNP_H
